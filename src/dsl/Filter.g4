@@ -10,30 +10,33 @@ filterExpression:
     | anyExpression
     | hasExpression;
 
+// 一元逻辑函数
 notExpression:
     'not' LPAREN filterExpression RPAREN;
 
+// 多元逻辑函数
 logicalExpression:
     ( 'and' | 'or' ) LPAREN filterExpression ( COMMA filterExpression )* RPAREN;
 
+// 二元比较运算
 comparisonExpression:
     ( 'equals' | 'greaterThan' | 'greaterOrEqual' | 'lessThan' | 'lessOrEqual' ) LPAREN (
-        countExpression | fieldChain
+        fieldChain
     ) COMMA (
-        countExpression | literalConstant | 'null' | fieldChain
+        literalConstant | 'null' | fieldChain
     ) RPAREN;
 
+// 函数调用 1键 1值
 matchTextExpression:
     ( 'contains' | 'startsWith' | 'endsWith' ) LPAREN fieldChain COMMA literalConstant RPAREN;
 
+// 函数调用 1键 多值
 anyExpression:
     'any' LPAREN fieldChain COMMA literalConstant ( COMMA literalConstant )+ RPAREN;
 
+// 函数调用 1键 1值
 hasExpression:
     'has' LPAREN fieldChain ( COMMA filterExpression )? RPAREN;
-
-countExpression:
-    'count' LPAREN fieldChain RPAREN;
 
 fieldChain:
     FIELD ( '.' FIELD )*;

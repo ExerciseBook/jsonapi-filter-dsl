@@ -1,9 +1,5 @@
 package dsl
 
-import (
-	"fmt"
-)
-
 type FilterLexer struct {
 	source   string
 	position int
@@ -24,57 +20,67 @@ func (lexer *FilterLexer) GetPosition() int {
 	return lexer.position
 }
 
+func (lexer *FilterLexer) GetNowToken() Token {
+	return lexer.nowToken
+}
+
 func (lexer *FilterLexer) FetchNextToken() (Token, error) {
 	if lexer.length <= lexer.position {
-		return Token{}, fmt.Errorf("没了")
+		lexer.nowToken = Token{}
+		return lexer.nowToken, &EndOfFile{}
 	}
 
 	if lexer.source[lexer.position] == ' ' ||
 		lexer.source[lexer.position] == '\r' ||
 		lexer.source[lexer.position] == '\n' ||
 		lexer.source[lexer.position] == '\t' {
-		lexer.position++
-		return Token{
+		lexer.nowToken = Token{
 			value:    string(lexer.source[lexer.position]),
 			position: lexer.position,
 			_type:    TokenWhiteSpace,
-		}, nil
+		}
+		lexer.position++
+		return lexer.nowToken, nil
 	}
 
 	if lexer.source[lexer.position] == '(' {
-		lexer.position++
-		return Token{
+		lexer.nowToken = Token{
 			value:    "(",
 			position: lexer.position,
 			_type:    TokenLeftParen,
-		}, nil
+		}
+		lexer.position++
+		return lexer.nowToken, nil
 	}
 
 	if lexer.source[lexer.position] == ')' {
-		lexer.position++
-		return Token{
+		lexer.nowToken = Token{
 			value:    ")",
 			position: lexer.position,
 			_type:    TokenRightParen,
-		}, nil
+		}
+		lexer.position++
+		return lexer.nowToken, nil
 	}
 
 	if lexer.source[lexer.position] == ',' {
-		lexer.position++
-		return Token{
+		lexer.nowToken = Token{
 			value:    ",",
 			position: lexer.position,
 			_type:    TokenComma,
-		}, nil
+		}
+		lexer.position++
+		return lexer.nowToken, nil
 	}
 
 	if lexer.source[lexer.position] == '.' {
-		lexer.position++
-		return Token{
+		lexer.nowToken = Token{
 			value:    ".",
 			position: lexer.position,
 			_type:    TokenDot,
-		}, nil
+		}
+		lexer.position++
+		return lexer.nowToken, nil
 	}
 
 	if lexer.source[lexer.position] == '\'' {
@@ -102,6 +108,7 @@ func (lexer *FilterLexer) FetchNextToken() (Token, error) {
 		}
 
 		lexer.position = i
+		lexer.nowToken = ret
 		return ret, nil
 	}
 
@@ -122,8 +129,8 @@ func (lexer *FilterLexer) FetchNextToken() (Token, error) {
 		lexer.source[i] != '.'; i++ {
 	}
 	lexer.position = i
-	ret.value = lexer.source[ret.position : i]
-
+	ret.value = lexer.source[ret.position:i]
+	lexer.nowToken = ret
 	return ret, nil
 }
 
