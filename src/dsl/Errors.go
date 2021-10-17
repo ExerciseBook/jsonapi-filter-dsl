@@ -1,5 +1,7 @@
 package dsl
 
+import "fmt"
+
 type EndOfFile struct{}
 
 func (m *EndOfFile) Error() string {
@@ -12,7 +14,7 @@ type TokenError struct {
 }
 
 func (m *TokenError) Error() string {
-	return ""
+	return fmt.Sprintf("Token Error, %d expected but %d found", m.expected, m.actual)
 }
 
 type FunctionNotFound struct {
@@ -20,5 +22,11 @@ type FunctionNotFound struct {
 }
 
 func (m *FunctionNotFound) Error() string {
+	return fmt.Sprintf("Function %s not found", m.name)
+}
+
+type NodeError struct{}
+
+func (m *NodeError) Error() string {
 	return ""
 }

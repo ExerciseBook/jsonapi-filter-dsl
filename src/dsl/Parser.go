@@ -7,37 +7,45 @@ type FilterParser struct {
 
 func CreateParser(lexer FilterLexer, customFunction map[string]FunctionType) (FilterParser, error) {
 	ret := FilterParser{
-		lexer:          lexer,
-		customFunction: customFunction,
+		lexer: lexer,
+	}
+	if customFunction == nil {
+		ret.customFunction = FunctionDefinition
+	} else {
+		ret.customFunction = customFunction
 	}
 	_, err := ret.lexer.FetchNextNonBlankToken()
 	return ret, err
 }
 
 func (parser *FilterParser) ParseExpression() (AstNode, error) {
-	var ret = new(NonTerminalNode)
-
-	id, err := parser.lexer.FetchNextNonBlankToken()
-	if err != nil {
-		return nil, err
-	}
+	// 消费函数名
+	id := parser.lexer.nowToken
 	if id._type != TokenID {
 		return nil, &TokenError{
 			expected: TokenID,
 			actual:   id._type,
 		}
 	}
-	function, err := parser.GetFunction(id.value)
+	_, err := parser.GetFunction(id.value)
 	if err != nil {
 		return nil, err
 	}
-	ret.children = append(ret.children, TerminalNode{_type: NodeID, token: id})
 
-
-	open, err := parser.lexer.FetchNextToken()
+	// 读取括号
+	_, err = parser.lexer.FetchNextNonBlankToken()
 	if err != nil {
 		return nil, err
 	}
+	return parser.ParseFunction(id, true)
+}
+
+func (parser *FilterParser) ParseFunction(id Token, ignoreEOF bool) (AstNode, error) {
+	var ret = new(NonTerminalNode)
+	ret.children = append(ret.children, TerminalNode{_type: NodeFunction, token: id})
+
+	// 消费括号
+	open := parser.lexer.nowToken
 	if open._type != TokenLeftParen {
 		return nil, &TokenError{
 			expected: TokenLeftParen,
@@ -46,28 +54,47 @@ func (parser *FilterParser) ParseExpression() (AstNode, error) {
 	}
 	ret.children = append(ret.children, TerminalNode{_type: NodeLeftParen, token: open})
 
-	for i := 0; i < function.ParameterCount; i++ {
-		// 0, 1, 2, 3
-		// parser.
-		if i != function.ParameterCount-1 {
-			// 吃个逗号
-			comma, err := parser.lexer.FetchNextToken()
+	// 读取括号的下一个元素
+	_, err := parser.lexer.FetchNextNonBlankToken()
+	if err != nil {
+		return nil, err
+	}
+
+	for i := 0; ; i++ {
+		param, err := parser.ParseGeneric()
+		if err != nil {
+			return nil, err
+		}
+		ret.children = append(ret.children, param)
+
+		if parser.lexer.nowToken._type == TokenComma {
+			ret.children = append(ret.children, TerminalNode{_type: NodeComma, token: parser.lexer.nowToken})
+			_, err = parser.lexer.FetchNextNonBlankToken()
 			if err != nil {
 				return nil, err
 			}
-			if comma._type != TokenComma {
-				return nil, &TokenError{
-					expected: TokenComma,
-					actual:   comma._type,
-				}
-			}
-			ret.children = append(ret.children, TerminalNode{_type: NodeComma, token: comma})
+			continue
+		}
+
+		if parser.lexer.nowToken._type == TokenRightParen {
+			break
+		}
+
+		return nil, &TokenError{
+			expected: TokenComma,
+			actual:   parser.lexer.nowToken._type,
 		}
 	}
 
-	_close, err := parser.lexer.FetchNextToken()
+	_close := parser.lexer.nowToken
+	_, err = parser.lexer.FetchNextNonBlankToken()
 	if err != nil {
-		return nil, err
+		if !ignoreEOF {
+			return nil, err
+		}
+		if _, ok := err.(*EndOfFile); !ok {
+			return nil, err
+		}
 	}
 	if _close._type != TokenRightParen {
 		return nil, &TokenError{
@@ -78,6 +105,58 @@ func (parser *FilterParser) ParseExpression() (AstNode, error) {
 	ret.children = append(ret.children, TerminalNode{_type: NodeRightParen, token: _close})
 
 	return ret, nil
+}
+
+func (parser *FilterParser) ParseGeneric() (AstNode, error) {
+	// 字面量
+	if parser.lexer.nowToken._type == TokenLiteralValue {
+		ret := TerminalNode{_type: NodeLiteralValue, token: parser.lexer.nowToken}
+		_, err := parser.lexer.FetchNextNonBlankToken()
+		if err != nil {
+			return nil, err
+		}
+		return ret, nil
+	}
+
+	if parser.lexer.nowToken._type != TokenID {
+		return nil, &TokenError{
+			expected: TokenID,
+			actual:   parser.lexer.nowToken._type,
+		}
+	}
+	// 读取 ID
+	id := parser.lexer.nowToken
+	// 消费 ID
+	_, err := parser.lexer.FetchNextNonBlankToken()
+	if err != nil {
+		return nil, err
+	}
+
+	// ID + '(' => 函数
+	if parser.lexer.nowToken._type == TokenLeftParen {
+		return parser.ParseFunction(id, false)
+	}
+
+	// ID + '.' => 字段名
+	if parser.lexer.nowToken._type == TokenDot {
+		// TODO
+	}
+
+	// ID + ',' => 直接走人
+	if parser.lexer.nowToken._type == TokenComma {
+		return TerminalNode{_type: NodeID, token: id}, nil
+	}
+
+	// ID + ')' => 直接走人
+	if parser.lexer.nowToken._type == TokenRightParen {
+		return TerminalNode{_type: NodeID, token: id}, nil
+	}
+
+	// ID 的 Next 没有其他的了
+	return nil, &TokenError{
+		expected: TokenComma,
+		actual:   parser.lexer.nowToken._type,
+	}
 }
 
 func (parser *FilterParser) GetFunction(name string) (FunctionType, error) {

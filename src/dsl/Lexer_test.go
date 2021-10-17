@@ -1,8 +1,11 @@
 package dsl
 
-import "fmt"
+import (
+	"fmt"
+	"testing"
+)
 
-func main() {
+func TestLexer(t *testing.T) {
 	cases := []string{
 		"equals(lastName,'Smith')",
 		"lessThan(age,'25')",
@@ -21,6 +24,7 @@ func main() {
 	}
 
 	for _, source := range cases {
+		println(source)
 		lexer := CreateLexer(source)
 		for ;; {
 			ret, err := lexer.FetchNextNonBlankToken()
@@ -29,7 +33,6 @@ func main() {
 			}
 			println(fmt.Sprintf("%v", ret))
 		}
+		println()
 	}
-
-
 }

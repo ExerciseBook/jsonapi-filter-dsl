@@ -87,7 +87,7 @@ func (lexer *FilterLexer) FetchNextToken() (Token, error) {
 		ret := Token{
 			value:    "",
 			position: lexer.position,
-			_type:    LiteralValue,
+			_type:    TokenLiteralValue,
 		}
 
 		// TODO 找个大手子帮我优化一下这里
