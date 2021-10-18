@@ -15,10 +15,17 @@ func CreateParser(lexer FilterLexer, customFunction map[string]FunctionType) (Fi
 		ret.customFunction = customFunction
 	}
 	_, err := ret.lexer.FetchNextNonBlankToken()
+	if _, ok := err.(*EndOfFile); ok {
+		return ret, nil
+	}
 	return ret, err
 }
 
 func (parser *FilterParser) ParseExpression() (AstNode, error) {
+	if parser.lexer.IsEnded() {
+		return TerminalNode{}, nil
+	}
+
 	// 消费函数名
 	id := parser.lexer.nowToken
 	if id._type != TokenID {

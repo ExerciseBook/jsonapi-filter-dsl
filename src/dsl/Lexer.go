@@ -146,3 +146,7 @@ func (lexer *FilterLexer) FetchNextNonBlankToken() (Token, error) {
 		}
 	}
 }
+
+func (lexer *FilterLexer) IsEnded() bool {
+	return lexer.position >= lexer.length
+}

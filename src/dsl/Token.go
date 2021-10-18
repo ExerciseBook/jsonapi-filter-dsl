@@ -18,7 +18,6 @@ func (token Token) GetValue() string {
 	return token.value
 }
 
-
 func (token Token) GetPosition() int {
 	return token.position
 }
@@ -26,4 +25,3 @@ func (token Token) GetPosition() int {
 func (token Token) GetType() int {
 	return token._type
 }
-

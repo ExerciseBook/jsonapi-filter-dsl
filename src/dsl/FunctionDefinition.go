@@ -6,7 +6,7 @@ type FunctionType struct {
 	Function       interface{}
 }
 
-var FunctionDefinition map[string]FunctionType = make(map[string]FunctionType)
+var FunctionDefinition = make(map[string]FunctionType)
 
 // FunctionLogistic 逻辑函数定义
 // 当出现这个的时候，该函数的参数数量必须要与 ParameterCount 一致

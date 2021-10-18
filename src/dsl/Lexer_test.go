@@ -26,7 +26,7 @@ func TestLexer(t *testing.T) {
 	for _, source := range cases {
 		println(source)
 		lexer := CreateLexer(source)
-		for ;; {
+		for {
 			ret, err := lexer.FetchNextNonBlankToken()
 			if err != nil {
 				break
