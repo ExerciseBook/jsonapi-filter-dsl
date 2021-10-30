@@ -9,20 +9,21 @@ func (m *EndOfFile) Error() string {
 }
 
 type TokenError struct {
-	expected int
-	actual   int
+	expected TokenType
+	token    Token
 }
 
 func (m *TokenError) Error() string {
-	return fmt.Sprintf("Token Error, %d expected but %d found", m.expected, m.actual)
+	return fmt.Sprintf("[%d]: Token Error, %s expected but %s found", m.token.position, m.expected.GetName(), m.token._type.GetName())
 }
 
 type FunctionNotFound struct {
-	name string
+	name  string
+	token Token
 }
 
 func (m *FunctionNotFound) Error() string {
-	return fmt.Sprintf("Function %s not found", m.name)
+	return fmt.Sprintf(`[%d]: Function "%s" not found`, m.token.position, m.name)
 }
 
 type NodeError struct{}

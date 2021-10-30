@@ -31,10 +31,10 @@ func (parser *FilterParser) ParseExpression() (AstNode, error) {
 	if id._type != TokenID {
 		return nil, &TokenError{
 			expected: TokenID,
-			actual:   id._type,
+			token:    id,
 		}
 	}
-	_, err := parser.GetFunction(id.value)
+	_, err := parser.GetFunction(id.value, id)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (parser *FilterParser) ParseFunction(id Token, ignoreEOF bool) (AstNode, er
 	if open._type != TokenLeftParen {
 		return nil, &TokenError{
 			expected: TokenLeftParen,
-			actual:   open._type,
+			token:    open,
 		}
 	}
 	ret.children = append(ret.children, TerminalNode{_type: NodeLeftParen, token: open})
@@ -89,7 +89,7 @@ func (parser *FilterParser) ParseFunction(id Token, ignoreEOF bool) (AstNode, er
 
 		return nil, &TokenError{
 			expected: TokenComma,
-			actual:   parser.lexer.nowToken._type,
+			token:    parser.lexer.nowToken,
 		}
 	}
 
@@ -106,7 +106,7 @@ func (parser *FilterParser) ParseFunction(id Token, ignoreEOF bool) (AstNode, er
 	if _close._type != TokenRightParen {
 		return nil, &TokenError{
 			expected: TokenLeftParen,
-			actual:   _close._type,
+			token:    _close,
 		}
 	}
 	ret.children = append(ret.children, TerminalNode{_type: NodeRightParen, token: _close})
@@ -128,7 +128,7 @@ func (parser *FilterParser) ParseGeneric() (AstNode, error) {
 	if parser.lexer.nowToken._type != TokenID {
 		return nil, &TokenError{
 			expected: TokenID,
-			actual:   parser.lexer.nowToken._type,
+			token:    parser.lexer.nowToken,
 		}
 	}
 	// 读取 ID
@@ -145,9 +145,9 @@ func (parser *FilterParser) ParseGeneric() (AstNode, error) {
 	}
 
 	// ID + '.' => 字段名
-	if parser.lexer.nowToken._type == TokenDot {
+	//if parser.lexer.nowToken._type == TokenDot {
 		// TODO
-	}
+	//}
 
 	// ID + ',' => 直接走人
 	if parser.lexer.nowToken._type == TokenComma {
@@ -162,11 +162,11 @@ func (parser *FilterParser) ParseGeneric() (AstNode, error) {
 	// ID 的 Next 没有其他的了
 	return nil, &TokenError{
 		expected: TokenComma,
-		actual:   parser.lexer.nowToken._type,
+		token:    parser.lexer.nowToken,
 	}
 }
 
-func (parser *FilterParser) GetFunction(name string) (FunctionType, error) {
+func (parser *FilterParser) GetFunction(name string, token Token) (FunctionType, error) {
 	ret, ok := parser.customFunction[name]
 	if ok {
 		return ret, nil
@@ -177,5 +177,5 @@ func (parser *FilterParser) GetFunction(name string) (FunctionType, error) {
 		return ret, nil
 	}
 
-	return FunctionType{}, &FunctionNotFound{name: name}
+	return FunctionType{}, &FunctionNotFound{name: name, token: token}
 }

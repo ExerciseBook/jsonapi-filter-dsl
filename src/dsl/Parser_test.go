@@ -6,6 +6,26 @@ import (
 )
 
 func TestParser(t *testing.T) {
+	var function = make(map[string]FunctionType)
+	//function["and"] = FunctionType{
+	//	Type:           FunctionLogistic,
+	//	ParameterCount: -1, // 负数表示不限制数量
+	//	Function: func() {
+	//	},
+	//}
+	//function["equals"] = FunctionType{
+	//	Type:           FunctionLogistic,
+	//	ParameterCount: 2, // 负数表示不限制数量
+	//	Function: func() {
+	//	},
+	//}
+	//function["has"] = FunctionType{
+	//	Type:           FunctionLogistic,
+	//	ParameterCount: 1, // 负数表示不限制数量
+	//	Function: func() {
+	//	},
+	//}
+
 	cases := []string{
 		//"equals(lastName,'Smith')",
 		//"lessThan(age,'25')",
@@ -22,12 +42,13 @@ func TestParser(t *testing.T) {
 		//"and(has(orders),has(invoices))",
 		//"equals(displayName,'Brian O''Connor')",
 		"and(equals(displayName,'Brian O''Connor'), has(invoices))",
+		//"       and(equals(displayName,'Brian O''Connor'), has(invoices))",
 	}
 
 	for _, source := range cases {
 		println(source)
 		lexer := CreateLexer(source)
-		parser, err := CreateParser(lexer, nil)
+		parser, err := CreateParser(lexer, function)
 		if err != nil {
 			t.Error(err.Error())
 			return
