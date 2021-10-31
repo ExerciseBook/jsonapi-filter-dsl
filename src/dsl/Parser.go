@@ -141,6 +141,10 @@ func (parser *FilterParser) ParseGeneric() (AstNode, error) {
 
 	// ID + '(' => 函数
 	if parser.lexer.nowToken._type == TokenLeftParen {
+		_, err := parser.GetFunction(id.value, id)
+		if err != nil {
+			return nil, err
+		}
 		return parser.ParseFunction(id, false)
 	}
 

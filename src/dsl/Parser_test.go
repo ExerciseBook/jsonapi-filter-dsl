@@ -7,24 +7,24 @@ import (
 
 func TestParser(t *testing.T) {
 	var function = make(map[string]FunctionType)
-	//function["and"] = FunctionType{
-	//	Type:           FunctionLogistic,
-	//	ParameterCount: -1, // 负数表示不限制数量
-	//	Function: func() {
-	//	},
-	//}
-	//function["equals"] = FunctionType{
-	//	Type:           FunctionLogistic,
-	//	ParameterCount: 2, // 负数表示不限制数量
-	//	Function: func() {
-	//	},
-	//}
-	//function["has"] = FunctionType{
-	//	Type:           FunctionLogistic,
-	//	ParameterCount: 1, // 负数表示不限制数量
-	//	Function: func() {
-	//	},
-	//}
+	function["and"] = FunctionType{
+		Type:           FunctionLogistic,
+		ParameterCount: -1, // 负数表示不限制数量
+		Function: func() {
+		},
+	}
+	function["equals"] = FunctionType{
+		Type:           FunctionLogistic,
+		ParameterCount: 2, // 负数表示不限制数量
+		Function: func() {
+		},
+	}
+	function["has"] = FunctionType{
+		Type:           FunctionLogistic,
+		ParameterCount: 1, // 负数表示不限制数量
+		Function: func() {
+		},
+	}
 
 	cases := []string{
 		//"equals(lastName,'Smith')",
